@@ -118,7 +118,7 @@ class CategoryDetailCollectionViewCell: UICollectionViewCell {
         eventTypeLabel.text = event.eventType
         eventDateLabel.text = event.eventDate
         eventVenueLabel.text = event.eventLocation
-        isFavorited = false
+        isFavorited = event.isFavorited == "true"
 
         if let imageURL = URL(string: event.eventImage ?? "") {
             loadImage(from: imageURL)
@@ -138,13 +138,14 @@ class CategoryDetailCollectionViewCell: UICollectionViewCell {
     }
 
     private func toggleFavoriteStatus(for eventID: String) {
-        let urlString = "https://api.example.com/favorites"
+        let urlString = "https://localhost:8080/favori/favorites"
         guard let url = URL(string: urlString) else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = isFavorited ? "POST" : "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["event_id": eventID]
+        let body: [String: Any] = ["eventID": eventID]
+        
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         URLSession.shared.dataTask(with: request) { _, _, error in

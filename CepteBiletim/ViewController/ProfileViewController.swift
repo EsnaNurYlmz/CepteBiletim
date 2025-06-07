@@ -10,7 +10,14 @@ import UIKit
 class ProfileViewController: UIViewController {
 
     let profileCategoryTableView = UITableView()
-    let profileCategoryList = ["GİRİŞ YAP", "PROFİL DÜZENLE", "BİLETLERİM", "ÇIKIŞ YAP"]
+    var profileCategoryList: [String] {
+        if SessionManager.shared.isLoggedIn {
+            return ["PROFİL DÜZENLE", "BİLETLERİM", "ÇIKIŞ YAP"]
+        } else {
+            return ["GİRİŞ YAP", "PROFİL DÜZENLE", "BİLETLERİM"]
+        }
+    }
+   
     
     let logoImageView: UIImageView = {
         let imageView = UIImageView()
@@ -27,6 +34,11 @@ class ProfileViewController: UIViewController {
         configureLogoImageView()
         setupTableView()
     }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        profileCategoryTableView.reloadData()
+    }
+
     
     func configureLogoImageView(){
         view.addSubview(logoImageView)
@@ -71,23 +83,23 @@ extension ProfileViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        profileCategoryTableView.deselectRow(at: indexPath, animated: true)
-       
-        switch indexPath.row {
-            case 0:
-                let loginVC = LoginViewController()
-                navigationController?.pushViewController(loginVC, animated: true)
-            case 1:
-                let profileUpdateVC = ProfileUpdateViewController()
-                navigationController?.pushViewController(profileUpdateVC, animated: true)
-            case 2:
-                let ticketsVC = TicketsViewController()
-                navigationController?.pushViewController(ticketsVC, animated: true)
-            case 3:
-                print("Çıkış yapıldı")
-            default:
-                break
-            }
+        
+        
+        let selectedOption = profileCategoryList[indexPath.row]
+        
+        if selectedOption == "ÇIKIŞ YAP" {
+            SessionManager.shared.clearSession()
+            tableView.reloadData()
+        } else if selectedOption == "GİRİŞ YAP" {
+            let loginVC = LoginViewController()
+            navigationController?.pushViewController(loginVC, animated: true)
+        } else if selectedOption == "PROFİL DÜZENLE" {
+            let profileUpdateVC = ProfileUpdateViewController()
+            navigationController?.pushViewController(profileUpdateVC, animated: true)
+        } else if selectedOption == "BİLETLERİM" {
+            let ticketsVC = TicketsViewController()
+            navigationController?.pushViewController(ticketsVC, animated: true)
+        }
+        
     }
-
 }

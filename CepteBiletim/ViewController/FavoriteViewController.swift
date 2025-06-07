@@ -44,12 +44,12 @@ class FavoriteViewController: UIViewController, FavoriteCollectionViewCellDelega
     }
     
     func fetchFavoriteEvents() {
-        guard let userId = SessionManager.shared.userId else {
+        guard SessionManager.shared.userId != nil else {
             print("Kullanıcı ID bulunamadı")
             return
         }
         
-        let urlString = "https://api.example.com/favorites/user/\(userId)"
+        let urlString = "https://localhost:8080/favori/getAll"
         guard let url = URL(string: urlString) else { return }
         
         URLSession.shared.dataTask(with: url) { data, _, error in

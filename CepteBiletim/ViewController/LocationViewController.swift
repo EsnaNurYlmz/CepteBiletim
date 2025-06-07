@@ -5,158 +5,147 @@
 //  Created by Esna nur Yılmaz on 29.05.2025.
 //
 import UIKit
-import MapKit
 import CoreLocation
+import MapKit
 
-class LocationViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, UISearchBarDelegate {
+class LocationViewController: UIViewController, CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource {
     
-    let locationSearchBar: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.placeholder = "Adres arayın"
-        searchBar.translatesAutoresizingMaskIntoConstraints = false
-        return searchBar
-    }()
+    private var tableView = UITableView()
+    private var events: [Event] = []
+    private var userLocation: CLLocation?
     
-    let mapView: MKMapView = {
-        let map = MKMapView()
-        map.translatesAutoresizingMaskIntoConstraints = false
-        return map
-    }()
-    
-    let routeButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Git", for: .normal)
-        button.backgroundColor = .systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    var eventAddress: String?
-    let locationManager = CLLocationManager()
-    var userLocation: CLLocationCoordinate2D?
-    var searchedCoordinate: CLLocationCoordinate2D?
+    private let locationManager = CLLocationManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
         title = "Yakınımda"
-        // Setup delegates
-        locationManager.delegate = self
-        mapView.delegate = self
-        locationSearchBar.delegate = self
+        view.backgroundColor = .white
         
-        // Layout
-        setupLayout()
-        
-        // Location auth
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
-        
-        // Button target
-        routeButton.addTarget(self, action: #selector(routeButtonTapped), for: .touchUpInside)
+        setupTableView()
+        setupLocationManager()
     }
     
-    func setupLayout() {
-        view.addSubview(locationSearchBar)
-        view.addSubview(mapView)
-        view.addSubview(routeButton)
+    func setupTableView() {
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(LocationTableViewCell.self, forCellReuseIdentifier: "EventCell")
+        view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
-            locationSearchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            locationSearchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            locationSearchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            
-            mapView.topAnchor.constraint(equalTo: locationSearchBar.bottomAnchor),
-            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            routeButton.widthAnchor.constraint(equalToConstant: 60),
-            routeButton.heightAnchor.constraint(equalToConstant: 40),
-            routeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            routeButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
-    @objc func routeButtonTapped() {
-        guard let destinationCoordinate = searchedCoordinate else {
-            print("Henüz arama yapılmadı veya konum bulunamadı.")
-            return
+    func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+    
+    func fetchEventsFromWebService() {
+        guard let url = URL(string: "http://localhost:8080/event/getAll") else { return }
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("İstek hatası: \(error.localizedDescription)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("HTTP Durum Kodu: \(httpResponse.statusCode)")
+                if httpResponse.statusCode != 200 {
+                    print("Beklenmeyen durum kodu.")
+                    return
+                }
+            }
+
+            guard let data = data else {
+                print("Veri boş")
+                return
+            }
+
+            do {
+                let decoder = JSONDecoder()
+                let fetchedEvents = try decoder.decode([Event].self, from: data)
+                DispatchQueue.main.async {
+                    self.events = self.sortEventsByDistance(events: fetchedEvents)
+                    self.tableView.reloadData()
+                }
+            } catch {
+                print("Veri çözümlenemedi: \(error)")
+                if let str = String(data: data, encoding: .utf8) {
+                    print("Gelen veri: \(str)")
+                }
+            }
+        }.resume()
+    }
+    
+    func sortEventsByDistance(events: [Event]) -> [Event] {
+        guard let userLocation = userLocation else { return events }
+        return events.sorted {
+            guard
+                let loc1 = getCoordinate(from: $0.eventLocation),
+                let loc2 = getCoordinate(from: $1.eventLocation)
+            else {
+                return false
+            }
+            return userLocation.distance(from: loc1) < userLocation.distance(from: loc2)
         }
-        openAppleMaps(with: destinationCoordinate)
+    }
+    
+    func getCoordinate(from address: String?) -> CLLocation? {
+        guard let address = address else { return nil }
+        var coordinate: CLLocation?
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        CLGeocoder().geocodeAddressString(address) { placemarks, error in
+            if let loc = placemarks?.first?.location {
+                coordinate = loc
+            }
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return coordinate
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.last {
-            userLocation = location.coordinate
-            locationManager.stopUpdatingLocation()
-            if let address = eventAddress {
-                geocodeAddressAndOpenMaps(address)
-            }
+        userLocation = locations.last
+        locationManager.stopUpdatingLocation()
+        fetchEventsFromWebService()
+    }
+    
+    // MARK: - UITableView
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return events.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "EventCell", for: indexPath) as? LocationTableViewCell else {
+            return UITableViewCell()
         }
+        let event = events[indexPath.row]
+        cell.configure(with: event, userLocation: userLocation)
+        return cell
     }
     
-    func geocodeAddressAndOpenMaps(_ address: String) {
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address) { (placemarks, error) in
-            guard let placemark = placemarks?.first, let location = placemark.location else {
-                print("Adres bulunamadı: \(error?.localizedDescription ?? "Bilinmeyen hata")")
-                return
-            }
-            let destinationCoordinate = location.coordinate
-            self.openAppleMaps(with: destinationCoordinate)
-        }
-    }
-    
-    func openAppleMaps(with destinationCoordinate: CLLocationCoordinate2D) {
-        guard let userLocation = userLocation else {
-            print("Kullanıcı konumu alınamadı.")
-            return
-        }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let event = events[indexPath.row]
+        guard let address = event.eventLocation else { return }
         
-        let userPlacemark = MKPlacemark(coordinate: userLocation)
-        let destinationPlacemark = MKPlacemark(coordinate: destinationCoordinate)
-        
-        let userMapItem = MKMapItem(placemark: userPlacemark)
-        let destinationMapItem = MKMapItem(placemark: destinationPlacemark)
-        destinationMapItem.name = "Etkinlik Mekanı"
-        
-        let options: [String: Any] = [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving]
-        MKMapItem.openMaps(with: [userMapItem, destinationMapItem], launchOptions: options)
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let searchText = searchBar.text, !searchText.isEmpty else { return }
-        searchBar.resignFirstResponder()
-        geocodeAddressFromSearchBar(searchText)
-    }
-    
-    func geocodeAddressFromSearchBar(_ address: String) {
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(address) { (placemarks, error) in
-            if let error = error {
-                print("Adres aranırken hata: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let placemark = placemarks?.first, let location = placemark.location else {
-                print("Adres bulunamadı.")
-                return
-            }
-            
-            let coordinate = location.coordinate
-            self.searchedCoordinate = coordinate
-            
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = coordinate
-            annotation.title = "Aranan Konum"
-            self.mapView.removeAnnotations(self.mapView.annotations)
-            self.mapView.addAnnotation(annotation)
-            
-            let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 1000, longitudinalMeters: 1000)
-            self.mapView.setRegion(region, animated: true)
+        CLGeocoder().geocodeAddressString(address) { placemarks, error in
+            guard let location = placemarks?.first?.location else { return }
+            let mapItem = MKMapItem(placemark: MKPlacemark(coordinate: location.coordinate))
+            mapItem.name = event.eventName
+            mapItem.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving])
         }
     }
 }
+
+
+
+
+

@@ -127,7 +127,7 @@ class DetailViewController: UIViewController {
         eventNameLabel.text = event.eventName
         artistNameLabel.text = event.artistName
         locationLabel.text = event.eventLocation
-        eventDetailTextView.text = event.eventType // eventDetail yerine tekrar eventType
+       eventDetailTextView.text = event.eventDescription
         
         if let imageUrl = event.eventImage, let url = URL(string: imageUrl) {
             DispatchQueue.global().async {

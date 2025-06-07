@@ -16,6 +16,10 @@ final class SessionManager {
     var userName: String?
     var email: String?
 
+    var isLoggedIn: Bool {
+        return userId != nil
+    }
+
     func clearSession() {
         userId = nil
         userName = nil
