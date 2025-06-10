@@ -138,23 +138,23 @@ class CategoryDetailCollectionViewCell: UICollectionViewCell {
     }
 
     private func toggleFavoriteStatus(for eventID: String) {
-        let urlString = "https://localhost:8080/favori/favorites"
-        guard let url = URL(string: urlString) else { return }
+           let urlString = "http://localhost:8080/favori/favorites"
+           guard let url = URL(string: urlString) else { return }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = isFavorited ? "POST" : "DELETE"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["eventID": eventID]
-        
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+           var request = URLRequest(url: url)
+           request.httpMethod = isFavorited ? "POST" : "DELETE"
+           request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+           let body: [String: Any] = ["eventID": eventID]
+           
+           request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        URLSession.shared.dataTask(with: request) { _, _, error in
-            if let error = error {
-                print("Favori isteği hatası: \(error.localizedDescription)")
-            } else {
-                print(self.isFavorited ? "Favoriye eklendi" : "Favoriden çıkarıldı")
-            }
-        }.resume()
+           URLSession.shared.dataTask(with: request) { _, _, error in
+               if let error = error {
+                   print("Favori isteği hatası: \(error.localizedDescription)")
+               } else {
+                   print(self.isFavorited ? "Favoriye eklendi" : "Favoriden çıkarıldı")
+               }
+           }.resume()
     }
 }
 

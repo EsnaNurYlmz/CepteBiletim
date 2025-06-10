@@ -9,15 +9,15 @@ import Foundation
 class Review : Codable {
     
     var reviewID: String?
-    var eventID : Event?
-    var userID : User?
+    var eventID : String?
+    var userID : String?
     var review : String?
     var reviewPoint : String?
     
     init(){
     }
     
-    init(reviewID: String, eventID: Event, userID: User, review: String, reviewPoint: String) {
+    init(reviewID: String, eventID: String, userID: String, review: String, reviewPoint: String) {
         self.reviewID = reviewID
         self.eventID = eventID
         self.userID = userID

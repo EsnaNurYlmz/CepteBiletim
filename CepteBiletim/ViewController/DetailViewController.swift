@@ -144,7 +144,7 @@ class DetailViewController: UIViewController {
         guard let userId = SessionManager.shared.userId,
               let eventId = event?.eventID else { return }
         
-        let urlString = "http://localhost:8080/favorites/check?userId=\(userId)&eventId=\(eventId)"
+        let urlString = "http://localhost:8080/favorites/check?userId=\(userId)&eventID=\(eventId)"
         guard let url = URL(string: urlString) else { return }
         
         URLSession.shared.dataTask(with: url) { data, _, _ in

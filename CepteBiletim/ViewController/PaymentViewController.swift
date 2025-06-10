@@ -50,7 +50,7 @@ class PaymentViewController: UIViewController {
         totalLabel.font = .boldSystemFont(ofSize: 18)
         
         payButton.setTitle("Ödemeyi Tamamla", for: .normal)
-        payButton.backgroundColor = .systemGreen
+        payButton.backgroundColor = .systemBlue
         payButton.setTitleColor(.white, for: .normal)
         payButton.layer.cornerRadius = 10
         payButton.titleLabel?.font = .boldSystemFont(ofSize: 18)
@@ -134,29 +134,18 @@ class PaymentViewController: UIViewController {
             return
         }
 
-        // Etkinliği satın alma işlemi
-        guard let event = purchasedEvent,
-              let userID = userID,
-              let url = URL(string: "https://api.example.com/addTicket") else {
-            return
-        }
 
+        let urlString = "http://localhost:8080/ticket/addTicket"
+        guard let url = URL(string: urlString) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
         let ticketData: [String: Any] = [
-            "userId": userID,
-            "eventId": event.eventID ?? "",
-            "eventName": event.eventName ?? "",
-            "eventDate": event.eventDate ?? "",
-            "eventLocation": event.eventLocation ?? "",
-            "eventType": event.eventType ?? "",
-            "eventImage": event.eventImage ?? "",
-            "eventPrice": event.eventPrice ?? "",
-            "artistName": event.artistName ?? "",
-            "eventCategory": event.eventCategory ?? ""
+            "eventId": purchasedEvent?.eventID ?? ""
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: ticketData, options: [])
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {

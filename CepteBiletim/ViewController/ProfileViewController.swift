@@ -14,7 +14,7 @@ class ProfileViewController: UIViewController {
         if SessionManager.shared.isLoggedIn {
             return ["PROFİL DÜZENLE", "BİLETLERİM", "ÇIKIŞ YAP"]
         } else {
-            return ["GİRİŞ YAP", "PROFİL DÜZENLE", "BİLETLERİM"]
+            return ["GİRİŞ YAP"]
         }
     }
    

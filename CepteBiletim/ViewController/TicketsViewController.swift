@@ -41,8 +41,11 @@ class TicketsViewController: UIViewController {
     }
 
     func fetchPurchasedTickets() {
-        guard let userID = userID else { return }
-        guard let url = URL(string: "https://api.example.com/getTickets?userId=\(userID)") else { return }
+        guard SessionManager.shared.userId != nil else {
+            print("Kullanıcı ID bulunamadı")
+            return
+        }
+        guard let url = URL(string: "http://localhost:8080/ticket/getAll") else { return }
 
         URLSession.shared.dataTask(with: url) { data, _, error in
             guard let data = data, error == nil else { return }

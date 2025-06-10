@@ -4,6 +4,134 @@
 //
 //  Created by Esna nur Yılmaz on 29.05.2025.
 //
+
+import UIKit
+import CoreLocation
+
+class LocationViewController: UIViewController {//CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource
+    
+    /*let tableView = UITableView()
+    let locationManager = CLLocationManager()
+    var userLocation: CLLocation?
+    
+    var allEvents: [Event] = []
+    var nearbyEvents: [Event] = []*/
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .white
+        title = "Yakınımdakiler"
+
+        //setupTableView()
+       // setupLocationManager()
+    }
+/*
+    func setupTableView() {
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "EventCell")
+        tableView.delegate = self
+        tableView.dataSource = self
+        view.addSubview(tableView)
+        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+
+    func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
+    // Konum Alındığında
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.first else { return }
+        userLocation = location
+        locationManager.stopUpdatingLocation()
+        fetchEventsFromWebService()
+    }
+
+    // Web servisten etkinlikleri çek
+    func fetchEventsFromWebService() {
+        guard let url = URL(string: "http://localhost:8080/event/\(eventID)") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let error = error {
+                print("Hata: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else { return }
+            
+            do {
+                let events = try JSONDecoder().decode([Event].self, from: data)
+                self.allEvents = events
+                self.filterNearbyEvents()
+            } catch {
+                print("Decode hatası: \(error)")
+            }
+        }.resume()
+    }
+
+    // Konuma göre filtreleme
+    func filterNearbyEvents() {
+        guard let userLocation = userLocation else { return }
+        
+        let geocoder = CLGeocoder()
+        var filteredEvents: [Event] = []
+        let dispatchGroup = DispatchGroup()
+
+        for event in allEvents {
+            dispatchGroup.enter()
+            
+            geocoder.geocodeAddressString(event.eventLocation!) { placemarks, error in
+                defer { dispatchGroup.leave() }
+                
+                guard let coordinate = placemarks?.first?.location?.coordinate else { return }
+                let eventLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+                let distance = userLocation.distance(from: eventLocation)
+                
+                if distance < 30000 { // 30 km yakınına kadar
+                    filteredEvents.append(event)
+                }
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) {
+            self.nearbyEvents = filteredEvents
+            self.tableView.reloadData()
+        }
+    }
+
+    // Tablo görünümü
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        nearbyEvents.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let event = nearbyEvents[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "EventCell", for: indexPath)
+        cell.textLabel?.text = "\(event.eventName!) - \(event.eventType!)"
+        cell.accessoryType = .disclosureIndicator
+        return cell
+    }
+
+    // Detay sayfasına geçiş
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedEvent = nearbyEvents[indexPath.row]
+        let detailVC = DetailViewController()
+        detailVC.eventID = selectedEvent.eventID
+        navigationController?.pushViewController(detailVC, animated: true)
+    }*/
+}
+
+
+
+/*
 import UIKit
 import CoreLocation
 import MapKit
@@ -144,7 +272,7 @@ class LocationViewController: UIViewController, CLLocationManagerDelegate, UITab
         }
     }
 }
-
+*/
 
 
 
