@@ -173,6 +173,7 @@ class TicketsBuyViewController: UIViewController {
         let totalPriceText = totalPriceLabel.text?.replacingOccurrences(of: "Toplam: ", with: "").replacingOccurrences(of: " TL", with: "") ?? "0"
         let totalPriceDouble = Double(totalPriceText) ?? 0.0
         paymentVC.totalAmount = totalPriceDouble
+        paymentVC.purchasedEvent = event
         navigationController?.pushViewController(paymentVC, animated: true)
     }
 }

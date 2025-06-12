@@ -142,7 +142,7 @@ class PaymentViewController: UIViewController {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let ticketData: [String: Any] = [
-            "eventId": purchasedEvent?.eventID ?? ""
+            "eventID": purchasedEvent?.eventID ?? ""
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: ticketData, options: [])
     
