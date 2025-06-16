@@ -26,10 +26,13 @@ class DetailViewController: UIViewController {
         setupUI()
         
         if let eventID = eventID {
-            fetchEventDetails(eventID: eventID)
-        }
-        
-        checkIfFavorite()
+             fetchEventDetails(eventID: eventID)
+         }
+         
+         if let eventID = eventID {
+             checkIfFavorite(eventID: eventID)
+         }
+         
     }
     
     func setupUI() {
@@ -114,6 +117,13 @@ class DetailViewController: UIViewController {
                 let eventDetails = try JSONDecoder().decode(Event.self, from: data)
                 DispatchQueue.main.async {
                     self.event = eventDetails
+                    let isFavorite = eventDetails.isFavorited == "true"
+                    DispatchQueue.main.async {
+                        let heartImage = isFavorite ? "heart.fill" : "heart"
+                        self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: heartImage)
+                        self.navigationItem.rightBarButtonItem?.tintColor = isFavorite ? .red : .black
+                    }
+                    
                     self.updateUI()
                 }
             } catch {
@@ -140,60 +150,48 @@ class DetailViewController: UIViewController {
         }
     }
     
-    func checkIfFavorite() {
-        guard let userId = SessionManager.shared.userId,
-              let eventId = event?.eventID else { return }
-        
-        let urlString = "http://localhost:8080/favorites/check?userId=\(userId)&eventID=\(eventId)"
-        guard let url = URL(string: urlString) else { return }
-        
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data = data else { return }
-            let isFavorite = String(data: data, encoding: .utf8) == "true"
-            DispatchQueue.main.async {
-                let heartImage = isFavorite ? "heart.fill" : "heart"
-                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: heartImage)
-                self.navigationItem.rightBarButtonItem?.tintColor = isFavorite ? .red : .black
-            }
-        }.resume()
-    }
     
     @objc func favoriteClicked() {
-        guard let userId = SessionManager.shared.userId,
-              let eventId = event?.eventID else {
-            print("Kullanıcı ID veya Etkinlik ID eksik")
-            return
-        }
+        guard let eventID = event?.eventID else { return }
         
-        let urlString = "http://localhost:8080/favorites"
-        guard let url = URL(string: urlString) else { return }
+
+        let checkUrlString = "http://localhost:8080/favori/check/\(eventID)"
+        guard let checkUrl = URL(string: checkUrlString) else { return }
         
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let favoriteData: [String: Any] = [
-            "userId": userId,
-            "eventId": eventId
-        ]
-        
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: favoriteData, options: [])
-        } catch {
-            print("JSON encode hatası: \(error.localizedDescription)")
-            return
-        }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Favori ekleme hatası: \(error.localizedDescription)")
+        URLSession.shared.dataTask(with: checkUrl) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Favori kontrol hatası: \(error?.localizedDescription ?? "Unknown error")")
                 return
             }
             
-            DispatchQueue.main.async {
-                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: "heart.fill")
-                self.navigationItem.rightBarButtonItem?.tintColor = .red
-            }
+            let isFavorite = String(data: data, encoding: .utf8) == "true"
+            
+    
+            let urlString = "http://localhost:8080/favori/favorites"
+            guard let url = URL(string: urlString) else { return }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = isFavorite ? "DELETE" : "POST" // Mevcut durumun tersini yap
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let body: [String: Any] = ["eventID": eventID]
+            
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("Favori güncelleme hatası: \(error.localizedDescription)")
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                
+                    let newFavoriteStatus = !isFavorite
+                    let heartImage = newFavoriteStatus ? "heart.fill" : "heart"
+                    self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: heartImage)
+                    self.navigationItem.rightBarButtonItem?.tintColor = newFavoriteStatus ? .red : .black
+                }
+            }.resume()
+            
         }.resume()
     }
     
@@ -211,5 +209,24 @@ class DetailViewController: UIViewController {
         ticketVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(ticketVC, animated: true)
     }
+    
+    
+    func checkIfFavorite(eventID: String) {
+
+        
+        let urlString = "http://localhost:8080/favori/check/\(eventID)"
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data else { return }
+            let isFavorite = String(data: data, encoding: .utf8) == "true"
+            DispatchQueue.main.async {
+                let heartImage = isFavorite ? "heart.fill" : "heart"
+                self.navigationItem.rightBarButtonItem?.image = UIImage(systemName: heartImage)
+                self.navigationItem.rightBarButtonItem?.tintColor = isFavorite ? .red : .black
+            }
+        }.resume()
+    }
+    
 }
 

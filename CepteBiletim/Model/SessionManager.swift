@@ -34,8 +34,8 @@ final class SessionManager {
         userId = nil
         userName = nil
         email = nil
-        reviews.removeAll()
-        UserDefaults.standard.removeObject(forKey: "userReviews")
+       // reviews.removeAll()
+       // UserDefaults.standard.removeObject(forKey: "userReviews")
     }
 
     /// Yorumları kaydet
