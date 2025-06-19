@@ -19,7 +19,7 @@ class LocationViewController: UIViewController, UITableViewDelegate, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        title = "Yakındaki Etkinlikler"
+        title = "Yakınımda"
 
         setupUI()
         fetchEventsFromWebService()

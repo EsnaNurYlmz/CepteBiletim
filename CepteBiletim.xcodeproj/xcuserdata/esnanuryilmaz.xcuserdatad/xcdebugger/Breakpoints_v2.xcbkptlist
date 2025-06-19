@@ -146,36 +146,6 @@
             endingLineNumber = "150"
             landmarkName = "completePayment()"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "2380165F-DEC6-4D9A-ACAA-A85B620A1E4D - 9acb848240ac0995"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "CepteBiletim.PaymentViewController.completePayment() -&gt; ()"
-                  moduleName = "CepteBiletim.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/esnanuryilmaz/Desktop/IOSPROJELER/CepteBiletim/CepteBiletim/ViewController/PaymentViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "150"
-                  endingLineNumber = "150">
-               </Location>
-               <Location
-                  uuid = "2380165F-DEC6-4D9A-ACAA-A85B620A1E4D - b02b62fdc82bd442"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 @Sendable (Swift.Optional&lt;Foundation.Data&gt;, Swift.Optional&lt;__C.NSURLResponse&gt;, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in CepteBiletim.PaymentViewController.completePayment() -&gt; ()"
-                  moduleName = "CepteBiletim.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/esnanuryilmaz/Desktop/IOSPROJELER/CepteBiletim/CepteBiletim/ViewController/PaymentViewController.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "150"
-                  endingLineNumber = "150">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
